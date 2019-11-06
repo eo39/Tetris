@@ -29,5 +29,10 @@ namespace Tetris
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             game.Draw(e.Graphics);
         }
+
+        private void TickTimer(object sender, System.EventArgs e)
+        {
+            gameField.Refresh();
+        }
     }
 }
