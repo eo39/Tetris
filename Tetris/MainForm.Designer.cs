@@ -59,6 +59,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "MainForm";
             this.Text = "Tetris";
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.DownKey);
             ((System.ComponentModel.ISupportInitialize)(this.gameField)).EndInit();
             this.ResumeLayout(false);
 

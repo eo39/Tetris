@@ -34,5 +34,11 @@ namespace Tetris
         {
             gameField.Refresh();
         }
+
+        private void DownKey(object sender, KeyEventArgs e)
+        {
+            game.OffsettingFallingBlock(e.KeyCode);
+            gameField.Refresh();
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace Tetris
 {
@@ -31,7 +32,7 @@ namespace Tetris
 
         private void GenerateNewBlock()
         {
-            switch (random.Next(7))
+            switch (random.Next(8))
             {
                 case 0:
                     fallingBlock = new[,] { { 0, 1, 2, 3 }, { 4, 4, 4, 4 } };
@@ -46,15 +47,48 @@ namespace Tetris
                     fallingBlock = new[,] { { 0, 1, 2, 2 }, { 4, 4, 4, 3 } };
                     break;
                 case 4:
-                    fallingBlock = new[,] { { 1, 1, 2, 2 }, { 3, 4, 4, 5 } };
+                    fallingBlock = new[,] { { 0, 0, 1, 1 }, { 3, 4, 4, 5 } };
                     break;
                 case 5:
-                    fallingBlock = new[,] { { 1, 1, 2, 2 }, { 5, 4, 4, 3 } };
+                    fallingBlock = new[,] { { 0, 0, 1, 1 }, { 5, 4, 4, 3 } };
                     break;
                 case 6:
                     fallingBlock = new[,] { { 1, 2, 2, 2 }, { 4, 3, 4, 5 } };
                     break;
+                case 7:
+                    fallingBlock = new[,] { { 0, 0, 0, 0 }, { 4, 4, 4, 4 } };
+                    break;
             }
+        }
+
+        public void OffsettingFallingBlock(Keys keyCode)
+        {
+            switch (keyCode)
+            {
+                case Keys.A:
+                    for (int i = 0; i < 4; i++)
+                        if (GetCanFallingBlockMove())
+                            fallingBlock[1, i]--;
+                    break;
+                case Keys.D:
+                    for (int i = 0; i < 4; i++)
+                        if (GetCanFallingBlockMove())
+                            fallingBlock[1, i]++;
+                    break;
+            }
+        }
+
+        private bool GetCanFallingBlockMove()
+        {
+            for (int i = 0; i < 4; i++)
+                if (fallingBlock[1, i] >= FieldWidth || fallingBlock[0, i] >= FieldHeight ||
+                    fallingBlock[1, i] <= 0 || fallingBlock[0, i] <= 0 ||
+                    gameField[fallingBlock[1, i], fallingBlock[0, i]] == 1)
+                {
+                    return true;
+                }
+
+            return false;
         }
 
         public void Draw(Graphics graphics)
