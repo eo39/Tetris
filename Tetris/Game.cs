@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -13,7 +12,7 @@ namespace Tetris
         private const int FieldHeight = 20;
         private const int FieldWidth = 10;
 
-        private List<Point> fallingBlock;
+        private int[,] fallingBlock;
         private int[,] gameField;
 
         public event Action Defeat = delegate { };
@@ -22,7 +21,7 @@ namespace Tetris
         {
             random = new Random();
             this.cellSize = cellSize;
-            fallingBlock = new List<Point>();
+            fallingBlock = new int[2, 4];
             gameField = new int[FieldWidth + 1, FieldHeight + 1];
         }
 
@@ -36,47 +35,28 @@ namespace Tetris
             switch (random.Next(8))
             {
                 case 0:
-                    for (int i = 0; i < 4; i++)
-                        fallingBlock.Add(new Point(i + 3, 0));
+                    fallingBlock = new[,] {{0, 1, 2, 3}, {4, 4, 4, 4}};
                     break;
                 case 1:
-                    for (int i = 0; i < 2; i++)
-                    {
-                        fallingBlock.Add(new Point(i + 4, i));
-                        fallingBlock.Add(new Point(i + 5, i));
-                    }
+                    fallingBlock = new[,] {{0, 1, 0, 1}, {4, 4, 5, 5}};
                     break;
                 case 2:
-                    for (int i = 0; i < 3; i++)
-                        fallingBlock.Add(new Point(4, i));
-                    fallingBlock.Add(new Point(5, 2));
+                    fallingBlock = new[,] {{0, 1, 2, 2}, {4, 4, 4, 5}};
                     break;
                 case 3:
-                    for (int i = 0; i < 3; i++)
-                        fallingBlock.Add(new Point(5, i));
-                    fallingBlock.Add(new Point(4, 2));
+                    fallingBlock = new[,] {{0, 1, 2, 2}, {4, 4, 4, 3}};
                     break;
                 case 4:
-                    for (int i = 0; i < 3; i++)
-                        fallingBlock.Add(new Point(i + 4, 1));
-                    fallingBlock.Add(new Point(5, 0));
+                    fallingBlock = new[,] {{0, 0, 1, 1}, {3, 4, 4, 5}};
                     break;
                 case 5:
-                    for (int i = 0; i < 2; i++)
-                    {
-                        fallingBlock.Add(new Point(i + 5, 0));
-                        fallingBlock.Add(new Point(i + 4, 1));
-                    }
+                    fallingBlock = new[,] {{0, 0, 1, 1}, {5, 4, 4, 3}};
                     break;
                 case 6:
-                    for (int i = 0; i < 2; i++)
-                    {
-                        fallingBlock.Add(new Point(4, i));
-                        fallingBlock.Add(new Point(5, i));
-                    }
+                    fallingBlock = new[,] {{1, 2, 2, 2}, {4, 3, 4, 5}};
                     break;
                 case 7:
-                    fallingBlock.Add(new Point(5, 0));
+                    fallingBlock = new[,] {{0, 0, 0, 0}, {4, 4, 4, 4}};
                     break;
             }
         }
@@ -86,27 +66,53 @@ namespace Tetris
             switch (keyCode)
             {
                 case Keys.A:
-                    if (GetCanFallingBlockMove())
-                        for (int i = 0; i < fallingBlock.Count; i++)
-                            fallingBlock[i] = new Point(fallingBlock[i].X - 1, fallingBlock[i].Y);
+                    FallingBlockMove(-1, 0);
                     break;
                 case Keys.D:
-                    if (GetCanFallingBlockMove())
-                        for (int i = 0; i < fallingBlock.Count; i++)
-                            fallingBlock[i] = new Point(fallingBlock[i].X + 1, fallingBlock[i].Y);
+                    FallingBlockMove(1, 0);
+                    break;
+                case Keys.S:
+                    FallingBlockMove(0, 1);
+                    break;
+                case Keys.W:
+                    FallingBlockTurnOver();
                     break;
             }
         }
 
-        private bool GetCanFallingBlockMove()
+        private void FallingBlockMove(int offsetX, int offsetY)
         {
-            for (int i = 0; i < fallingBlock.Count; i++)
-                if (fallingBlock[i].X + 1 <= FieldHeight && fallingBlock[i].X - 1 >= 0)
+            if (GetCanFallingBlockMove(offsetX, offsetY))
+                for (int i = 0; i < 4; i++)
                 {
-                    return true;
+                    fallingBlock[0, i] += offsetY;
+                    fallingBlock[1, i] += offsetX;
+                }
+        }
+
+        private void FallingBlockTurnOver()
+        {
+            for (int i = 0; i < 4; i++)
+                (fallingBlock[0, i], fallingBlock[1, i]) = (fallingBlock[1, i], fallingBlock[0, i]);
+            if (GetCanFallingBlockMove(0, 0)) return;
+            {
+                for (int i = 0; i < 4; i++)
+                    (fallingBlock[0, i], fallingBlock[1, i]) = (fallingBlock[1, i], fallingBlock[0, i]);
+            }
+        }
+
+        private bool GetCanFallingBlockMove(int offsetX, int offsetY)
+        {
+            int cellsMoveCount = 0;
+            for (int i = 0; i < 4; i++)
+                if (fallingBlock[1, i] + offsetX < FieldWidth && fallingBlock[1, i] + offsetX >= 0 &&
+                    fallingBlock[0, i] + offsetY < FieldHeight && fallingBlock[0, i] + offsetY >= 0 &&
+                    gameField[fallingBlock[1, i] + offsetX, fallingBlock[0, i] + offsetY] != 1)
+                {
+                    cellsMoveCount++;
                 }
 
-            return false;
+            return cellsMoveCount >= 4;
         }
 
         public void Draw(Graphics graphics)
@@ -130,9 +136,9 @@ namespace Tetris
 
         private void DrawFallingBlock(Graphics graphics)
         {
-            for (int i = 0; i < fallingBlock.Count; i++)
+            for (int i = 0; i < 4; i++)
             {
-                graphics.FillRectangle(Brushes.Red, fallingBlock[i].X * cellSize, fallingBlock[i].Y * cellSize,
+                graphics.FillRectangle(Brushes.Red, fallingBlock[1, i] * cellSize, fallingBlock[0, i] * cellSize,
                     cellSize, cellSize);
             }
         }
