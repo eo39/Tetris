@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace Tetris
@@ -61,6 +62,39 @@ namespace Tetris
             }
         }
 
+        public void Update()
+        {
+            for (int i = 0; i < 4; i++)
+                fallingBlock[0, i]++;
+
+            if (!GetCanFallingBlockMove(0,0))
+            {
+                for (int i = 0; i < 4; i++)
+                    gameField[fallingBlock[1, i], --fallingBlock[0, i]]++;
+
+                GenerateNewBlock();
+            }
+
+            DeleteFullLines();
+        }
+
+        private void DeleteFullLines()
+        {
+            for (int i = FieldHeight - 2; i > 2; i--)
+            {
+                int lineCount = Enumerable
+                    .Range(0, gameField.GetLength(0))
+                    .Select(j => gameField[j, i])
+                    .ToArray()
+                    .Count(t => t == 1);
+
+                if (lineCount == FieldWidth)
+                    for (int k = i; k > 1; k--)
+                        for (int l = 1; l < FieldWidth - 1; l++)
+                            gameField[l, k] = gameField[l, k - 1];
+            }
+        }
+
         public void OffsettingFallingBlock(Keys keyCode)
         {
             switch (keyCode)
@@ -92,6 +126,9 @@ namespace Tetris
 
         private void FallingBlockRotate()
         {
+            var fallingBlockTemp = new int[2, 4];
+            Array.Copy(fallingBlock, fallingBlockTemp, fallingBlock.Length);
+
             if (!IsFallingBlockSquare())
                 for (int i = 0; i < 4; i++)
                 {
@@ -99,6 +136,9 @@ namespace Tetris
                         fallingBlock[1, 1] + fallingBlock[0, 1] - fallingBlock[0, i],
                         fallingBlock[0, 1] - fallingBlock[1, 1] + fallingBlock[1, i]);
                 }
+
+            if(!GetCanFallingBlockMove(0,0))
+                Array.Copy(fallingBlockTemp, fallingBlock, fallingBlock.Length);
         }
 
         private bool IsFallingBlockSquare()

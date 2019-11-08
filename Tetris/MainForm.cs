@@ -32,6 +32,7 @@ namespace Tetris
 
         private void TickTimer(object sender, System.EventArgs e)
         {
+            game.Update();
             gameField.Refresh();
         }
 
