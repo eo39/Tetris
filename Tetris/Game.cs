@@ -70,7 +70,7 @@ namespace Tetris
             if (!GetCanFallingBlockMove(0,0))
             {
                 for (int i = 0; i < 4; i++)
-                    gameField[fallingBlock[1, i], --fallingBlock[0, i]]++;
+                    gameField[fallingBlock[1, i], --fallingBlock[0, i]] = 1;
 
                 GenerateNewBlock();
             }
@@ -80,7 +80,7 @@ namespace Tetris
 
         private void DeleteFullLines()
         {
-            for (int i = FieldHeight - 2; i > 2; i--)
+            for (int i = FieldHeight - 1; i > 2; i--)
             {
                 int lineCount = Enumerable
                     .Range(0, gameField.GetLength(0))
