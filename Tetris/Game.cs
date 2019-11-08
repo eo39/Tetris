@@ -28,6 +28,7 @@ namespace Tetris
 
         public void StartGame()
         {
+            gameField = new int[FieldWidth + 1, FieldHeight + 1];
             GenerateNewBlock();
         }
 
@@ -73,9 +74,20 @@ namespace Tetris
                     gameField[fallingBlock[1, i], --fallingBlock[0, i]] = 1;
 
                 GenerateNewBlock();
+
+                if (IsDefeat())
+                    Defeat();
             }
 
             DeleteFullLines();
+        }
+
+        private bool IsDefeat()
+        {
+            for (int i = 0; i < 4; i++)
+                if(gameField[fallingBlock[1, i], fallingBlock[0, i]] == 1)
+                    return true;
+            return false;
         }
 
         private void DeleteFullLines()

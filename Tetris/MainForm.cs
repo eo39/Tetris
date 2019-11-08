@@ -16,6 +16,7 @@ namespace Tetris
 
             game.Defeat += () =>
             {
+                Timer.Enabled = false;
                 gameField.Refresh();
                 MessageBox.Show("Game over");
                 game.StartGame();
