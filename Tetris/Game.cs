@@ -35,25 +35,25 @@ namespace Tetris
             switch (random.Next(8))
             {
                 case 0:
-                    fallingBlock = new[,] {{0, 1, 2, 3}, {4, 4, 4, 4}};
+                    fallingBlock = new[,] {{0, 0, 0, 0}, {3, 4, 5, 2}};
                     break;
                 case 1:
-                    fallingBlock = new[,] {{0, 1, 0, 1}, {4, 4, 5, 5}};
+                    fallingBlock = new[,] {{0, 1, 1, 0}, {4, 4, 5, 5}};
                     break;
                 case 2:
                     fallingBlock = new[,] {{0, 1, 2, 2}, {4, 4, 4, 5}};
                     break;
                 case 3:
-                    fallingBlock = new[,] {{0, 1, 2, 2}, {4, 4, 4, 3}};
+                    fallingBlock = new[,] {{0, 1, 2, 2}, {5, 5, 5, 4}};
                     break;
                 case 4:
-                    fallingBlock = new[,] {{0, 0, 1, 1}, {3, 4, 4, 5}};
+                    fallingBlock = new[,] {{0, 1, 0, 1}, {3, 4, 4, 5}};
                     break;
                 case 5:
-                    fallingBlock = new[,] {{0, 0, 1, 1}, {5, 4, 4, 3}};
+                    fallingBlock = new[,] {{0, 1, 0, 1}, {5, 4, 4, 3}};
                     break;
                 case 6:
-                    fallingBlock = new[,] {{1, 2, 2, 2}, {4, 3, 4, 5}};
+                    fallingBlock = new[,] {{0, 1, 1, 1}, {4, 4, 3, 5}};
                     break;
                 case 7:
                     fallingBlock = new[,] {{0, 0, 0, 0}, {4, 4, 4, 4}};
@@ -75,7 +75,7 @@ namespace Tetris
                     FallingBlockMove(0, 1);
                     break;
                 case Keys.W:
-                    FallingBlockTurnOver();
+                    FallingBlockRotate();
                     break;
             }
         }
@@ -90,15 +90,23 @@ namespace Tetris
                 }
         }
 
-        private void FallingBlockTurnOver()
+        private void FallingBlockRotate()
         {
-            for (int i = 0; i < 4; i++)
-                (fallingBlock[0, i], fallingBlock[1, i]) = (fallingBlock[1, i], fallingBlock[0, i]);
-            if (GetCanFallingBlockMove(0, 0)) return;
-            {
+            if (!IsFallingBlockSquare())
                 for (int i = 0; i < 4; i++)
-                    (fallingBlock[0, i], fallingBlock[1, i]) = (fallingBlock[1, i], fallingBlock[0, i]);
-            }
+                {
+                    (fallingBlock[1, i], fallingBlock[0, i]) = (
+                        fallingBlock[1, 1] + fallingBlock[0, 1] - fallingBlock[0, i],
+                        fallingBlock[0, 1] - fallingBlock[1, 1] + fallingBlock[1, i]);
+                }
+        }
+
+        private bool IsFallingBlockSquare()
+        {
+            return fallingBlock[0, 0] == fallingBlock[0, 3] &&
+                   fallingBlock[0, 1] == fallingBlock[0, 2] &&
+                   fallingBlock[1, 0] == fallingBlock[1, 1] &&
+                   fallingBlock[1, 2] == fallingBlock[1, 3];
         }
 
         private bool GetCanFallingBlockMove(int offsetX, int offsetY)
