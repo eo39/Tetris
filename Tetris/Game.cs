@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace Tetris
 {
-    class Game
+    internal class Game
     {
         private readonly Random random;
         private readonly int cellSize;
@@ -14,7 +14,9 @@ namespace Tetris
         private const int FieldWidth = 10;
 
         private Block fallingBlock;
+        private Block nextFallingBlock;
         private int[,] gameField;
+        private int gameScore;
 
         public event Action Defeat = delegate { };
 
@@ -27,37 +29,32 @@ namespace Tetris
         public void StartGame()
         {
             gameField = new int[FieldWidth + 1, FieldHeight + 1];
-            GenerateNewBlock();
+            fallingBlock = GetNewBlock();
+            nextFallingBlock = GetNewBlock();
         }
 
-        private void GenerateNewBlock()
+        private Block GetNewBlock()
         {
             switch (random.Next(8))
             {
                 case 0:
-                    fallingBlock = new Block("T");
-                    break;
+                    return new Block("T");
                 case 1:
-                    fallingBlock = new Block("J");
-                    break;
+                    return new Block("J");
                 case 2:
-                    fallingBlock = new Block("L");
-                    break;
+                    return new Block("L");
                 case 3:
-                    fallingBlock = new Block("Z");
-                    break;
+                    return new Block("Z");
                 case 4:
-                    fallingBlock = new Block("S");
-                    break;
+                    return new Block("S");
                 case 5:
-                    fallingBlock = new Block("I");
-                    break;
+                    return new Block("I");
                 case 6:
-                    fallingBlock = new Block("O");
-                    break;
+                    return new Block("O");
                 case 7:
-                    fallingBlock = new Block("Point");
-                    break;
+                    return new Block("Point");
+                default:
+                    return null;
             }
         }
 
@@ -71,7 +68,8 @@ namespace Tetris
                 for (int i = 0; i < 4; i++)
                     gameField[fallingBlock.Coordinates[1, i], fallingBlock.Coordinates[0, i] - 1] = 1;
 
-                GenerateNewBlock();
+                fallingBlock = nextFallingBlock;
+                nextFallingBlock = GetNewBlock();
             }
 
             DeleteFullLines();
@@ -80,29 +78,36 @@ namespace Tetris
                 Defeat();
         }
 
+        private void DeleteFullLines()
+        {
+            int deletedLinesCount = 0;
+
+            for (int i = FieldHeight - 1; i > 2; i--)
+            {
+                bool isNotLineFull = Enumerable.Range(0, gameField.GetLength(0))
+                                               .Select(j => gameField[j, i])
+                                               .Count(t => t == 1) != FieldWidth;
+
+                if (isNotLineFull) continue;
+
+                for (int k = i; k > 1; k--)
+                    for (int l = 1; l < FieldWidth - 1; l++)
+                    {
+                        gameField[l, k] = gameField[l, k - 1];
+                        deletedLinesCount++;
+                    }
+            }
+
+            AddScore(deletedLinesCount);
+        }
+
         private bool IsDefeat()
         {
             for (int i = 0; i < 4; i++)
                 if (gameField[fallingBlock.Coordinates[1, i], fallingBlock.Coordinates[0, i]] == 1)
                     return true;
+
             return false;
-        }
-
-        private void DeleteFullLines()
-        {
-            for (int i = FieldHeight - 1; i > 2; i--)
-            {
-                int lineCount = Enumerable
-                    .Range(0, gameField.GetLength(0))
-                    .Select(j => gameField[j, i])
-                    .ToArray()
-                    .Count(t => t == 1);
-
-                if (lineCount == FieldWidth)
-                    for (int k = i; k > 1; k--)
-                        for (int l = 1; l < FieldWidth - 1; l++)
-                            gameField[l, k] = gameField[l, k - 1];
-            }
         }
 
         public void OffsettingFallingBlock(Keys keyCode)
@@ -129,7 +134,7 @@ namespace Tetris
             if (GetCanFallingBlockMove(offsetX, offsetY))
                 fallingBlock.ChangeCoordinates(offsetX, offsetY);
         }
-        
+
         private bool GetCanFallingBlockMove(int offsetX, int offsetY)
         {
             int cellsMoveCount = 0;
@@ -172,6 +177,25 @@ namespace Tetris
                 graphics.FillRectangle(Brushes.Red, fallingBlock.Coordinates[1, i] * cellSize,
                     fallingBlock.Coordinates[0, i] * cellSize,
                     cellSize, cellSize);
+            }
+        }
+
+        private void AddScore(int deletedLinesCount)
+        {
+            switch (deletedLinesCount)
+            {
+                case 1:
+                    gameScore += 100;
+                    break;
+                case 2:
+                    gameScore += 300;
+                    break;
+                case 3:
+                    gameScore += 700;
+                    break;
+                case 4:
+                    gameScore += 1500;
+                    break;
             }
         }
     }
