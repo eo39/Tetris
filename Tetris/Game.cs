@@ -13,7 +13,7 @@ namespace Tetris
         private const int FieldHeight = 20;
         private const int FieldWidth = 10;
 
-        private Figure fallingBlock;
+        private Block fallingBlock;
         private int[,] gameField;
 
         public event Action Defeat = delegate { };
@@ -35,28 +35,28 @@ namespace Tetris
             switch (random.Next(8))
             {
                 case 0:
-                    fallingBlock = new Figure("T");
+                    fallingBlock = new Block("T");
                     break;
                 case 1:
-                    fallingBlock = new Figure("J");
+                    fallingBlock = new Block("J");
                     break;
                 case 2:
-                    fallingBlock = new Figure("L");
+                    fallingBlock = new Block("L");
                     break;
                 case 3:
-                    fallingBlock = new Figure("Z");
+                    fallingBlock = new Block("Z");
                     break;
                 case 4:
-                    fallingBlock = new Figure("S");
+                    fallingBlock = new Block("S");
                     break;
                 case 5:
-                    fallingBlock = new Figure("I");
+                    fallingBlock = new Block("I");
                     break;
                 case 6:
-                    fallingBlock = new Figure("O");
+                    fallingBlock = new Block("O");
                     break;
                 case 7:
-                    fallingBlock = new Figure("Point");
+                    fallingBlock = new Block("Point");
                     break;
             }
         }
@@ -69,7 +69,7 @@ namespace Tetris
             if (!GetCanFallingBlockMove(0, 0))
             {
                 for (int i = 0; i < 4; i++)
-                    gameField[fallingBlock.Coordinates[1, i], --fallingBlock.Coordinates[0, i]] = 1;
+                    gameField[fallingBlock.Coordinates[1, i], fallingBlock.Coordinates[0, i] - 1] = 1;
 
                 GenerateNewBlock();
             }
@@ -119,7 +119,7 @@ namespace Tetris
                     FallingBlockMove(0, 1);
                     break;
                 case Keys.W:
-                    FallingBlockRotate();
+                    fallingBlock.RotateBlock(FieldWidth, FieldHeight);
                     break;
             }
         }
@@ -127,25 +127,9 @@ namespace Tetris
         private void FallingBlockMove(int offsetX, int offsetY)
         {
             if (GetCanFallingBlockMove(offsetX, offsetY))
-                for (int i = 0; i < 4; i++)
-                {
-                    fallingBlock.Coordinates[0, i] += offsetY;
-                    fallingBlock.Coordinates[1, i] += offsetX;
-                }
+                fallingBlock.ChangeCoordinates(offsetX, offsetY);
         }
-
-        private void FallingBlockRotate()
-        {
-            var fallingBlockTemp = new int[2, 4];
-            Array.Copy(fallingBlock.Coordinates, fallingBlockTemp, fallingBlock.Coordinates.Length);
-
-            fallingBlock.RotateFigure();
-
-            if (!GetCanFallingBlockMove(0, 0))
-                Array.Copy(fallingBlockTemp, fallingBlock.Coordinates, fallingBlock.Coordinates.Length);
-        }
-
-
+        
         private bool GetCanFallingBlockMove(int offsetX, int offsetY)
         {
             int cellsMoveCount = 0;

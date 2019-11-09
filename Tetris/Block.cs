@@ -1,17 +1,19 @@
-﻿namespace Tetris
-{
-    class Figure
-    {
-        public readonly int[,] Coordinates;
+﻿using System;
 
-        private readonly string figureName;
+namespace Tetris
+{
+    class Block
+    {
+        public int[,] Coordinates { get; }
+
+        private readonly string blockType;
         private int rotateMode;
 
-        public Figure(string figureName)
+        public Block(string blockType)
         {
-            this.figureName = figureName;
+            this.blockType = blockType;
 
-            switch (this.figureName)
+            switch (this.blockType)
             {
                 case "T":
                     Coordinates = new[,] {{0, 1, 1, 1}, {4, 4, 3, 5}};
@@ -43,36 +45,65 @@
             }
         }
 
-        public void RotateFigure()
+        public void ChangeCoordinates(int offsetX, int offsetY)
         {
-            switch (figureName)
+            for (int i = 0; i < 4; i++)
             {
-                case "T":
-                    ChangeCoordinatesTLJ("Right");
-                    break;
-                case "L":
-                    ChangeCoordinatesTLJ("Right");
-                    break;
-                case "J":
-                    ChangeCoordinatesTLJ("Right");
-                    break;
-                case "Z":
-                    ChangeCoordinatesSZI();
-                    break;
-                case "S":
-                    ChangeCoordinatesSZI();
-                    break;
-                case "I":
-                    ChangeCoordinatesSZI();
-                    break;
+                Coordinates[0, i] += offsetY;
+                Coordinates[1, i] += offsetX;
             }
         }
 
-        private void ChangeCoordinatesTLJ(string direction)
+        public void RotateBlock(int gameFieldWidth, int gameFieldHeight)
+        {
+            int[,] fallingBlockTemp = new int[2, 4];
+            Array.Copy(Coordinates, fallingBlockTemp, Coordinates.Length);
+
+            switch (blockType)
+            {
+                case "T":
+                    RotateCoordinates("Right");
+                    break;
+                case "L":
+                    RotateCoordinates("Right");
+                    break;
+                case "J":
+                    RotateCoordinates("Right");
+                    break;
+                case "Z":
+                    RotateCoordinates();
+                    break;
+                case "S":
+                    RotateCoordinates();
+                    break;
+                case "I":
+                    RotateCoordinates();
+                    break;
+            }
+
+            if (!GetCanBlockRotate(gameFieldWidth, gameFieldHeight))
+                Array.Copy(fallingBlockTemp, Coordinates, Coordinates.Length);
+        }
+
+        private bool GetCanBlockRotate(int gameFieldWidth, int gameFieldHeight)
+        {
+            int cellsMoveCount = 0;
+            for (int i = 0; i < 4; i++)
+                if (Coordinates[1, i] < gameFieldWidth && Coordinates[1, i] >= 0 &&
+                    Coordinates[0, i] < gameFieldHeight && Coordinates[0, i] >= 0)
+                {
+                    cellsMoveCount++;
+                }
+
+            return cellsMoveCount >= 4;
+        }
+
+        private void RotateCoordinates(string direction)
         {
             switch (direction)
             {
                 case "Right":
+                {
                     for (int i = 0; i < 4; i++)
                     {
                         (Coordinates[1, i], Coordinates[0, i]) = (
@@ -81,7 +112,10 @@
                     }
 
                     break;
+                }
+
                 case "Left":
+                {
                     for (int i = 0; i < 4; i++)
                     {
                         (Coordinates[1, i], Coordinates[0, i]) = (
@@ -90,21 +124,23 @@
                     }
 
                     break;
+                }
             }
         }
 
-        private void ChangeCoordinatesSZI()
+        private void RotateCoordinates()
         {
             if (rotateMode == 1)
             {
-                ChangeCoordinatesTLJ("Right");
+                RotateCoordinates("Right");
                 rotateMode = 2;
             }
             else
             {
-                ChangeCoordinatesTLJ("Left");
+                RotateCoordinates("Left");
                 rotateMode = 1;
             }
+
         }
     }
 }
