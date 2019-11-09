@@ -13,7 +13,7 @@ namespace Tetris
         private const int FieldHeight = 20;
         private const int FieldWidth = 10;
 
-        private int[,] fallingBlock;
+        private Figure fallingBlock;
         private int[,] gameField;
 
         public event Action Defeat = delegate { };
@@ -22,8 +22,6 @@ namespace Tetris
         {
             random = new Random();
             this.cellSize = cellSize;
-            fallingBlock = new int[2, 4];
-            gameField = new int[FieldWidth + 1, FieldHeight + 1];
         }
 
         public void StartGame()
@@ -37,28 +35,28 @@ namespace Tetris
             switch (random.Next(8))
             {
                 case 0:
-                    fallingBlock = new[,] {{0, 0, 0, 0}, {3, 4, 5, 2}};
+                    fallingBlock = new Figure("T");
                     break;
                 case 1:
-                    fallingBlock = new[,] {{0, 1, 1, 0}, {4, 4, 5, 5}};
+                    fallingBlock = new Figure("J");
                     break;
                 case 2:
-                    fallingBlock = new[,] {{0, 1, 2, 2}, {4, 4, 4, 5}};
+                    fallingBlock = new Figure("L");
                     break;
                 case 3:
-                    fallingBlock = new[,] {{0, 1, 2, 2}, {5, 5, 5, 4}};
+                    fallingBlock = new Figure("Z");
                     break;
                 case 4:
-                    fallingBlock = new[,] {{0, 1, 0, 1}, {3, 4, 4, 5}};
+                    fallingBlock = new Figure("S");
                     break;
                 case 5:
-                    fallingBlock = new[,] {{0, 1, 0, 1}, {5, 4, 4, 3}};
+                    fallingBlock = new Figure("I");
                     break;
                 case 6:
-                    fallingBlock = new[,] {{0, 1, 1, 1}, {4, 4, 3, 5}};
+                    fallingBlock = new Figure("O");
                     break;
                 case 7:
-                    fallingBlock = new[,] {{0, 0, 0, 0}, {4, 4, 4, 4}};
+                    fallingBlock = new Figure("Point");
                     break;
             }
         }
@@ -66,26 +64,26 @@ namespace Tetris
         public void Update()
         {
             for (int i = 0; i < 4; i++)
-                fallingBlock[0, i]++;
+                fallingBlock.Coordinates[0, i]++;
 
-            if (!GetCanFallingBlockMove(0,0))
+            if (!GetCanFallingBlockMove(0, 0))
             {
                 for (int i = 0; i < 4; i++)
-                    gameField[fallingBlock[1, i], --fallingBlock[0, i]] = 1;
+                    gameField[fallingBlock.Coordinates[1, i], --fallingBlock.Coordinates[0, i]] = 1;
 
                 GenerateNewBlock();
-
-                if (IsDefeat())
-                    Defeat();
             }
 
             DeleteFullLines();
+
+            if (IsDefeat())
+                Defeat();
         }
 
         private bool IsDefeat()
         {
             for (int i = 0; i < 4; i++)
-                if(gameField[fallingBlock[1, i], fallingBlock[0, i]] == 1)
+                if (gameField[fallingBlock.Coordinates[1, i], fallingBlock.Coordinates[0, i]] == 1)
                     return true;
             return false;
         }
@@ -131,43 +129,32 @@ namespace Tetris
             if (GetCanFallingBlockMove(offsetX, offsetY))
                 for (int i = 0; i < 4; i++)
                 {
-                    fallingBlock[0, i] += offsetY;
-                    fallingBlock[1, i] += offsetX;
+                    fallingBlock.Coordinates[0, i] += offsetY;
+                    fallingBlock.Coordinates[1, i] += offsetX;
                 }
         }
 
         private void FallingBlockRotate()
         {
             var fallingBlockTemp = new int[2, 4];
-            Array.Copy(fallingBlock, fallingBlockTemp, fallingBlock.Length);
+            Array.Copy(fallingBlock.Coordinates, fallingBlockTemp, fallingBlock.Coordinates.Length);
 
-            if (!IsFallingBlockSquare())
-                for (int i = 0; i < 4; i++)
-                {
-                    (fallingBlock[1, i], fallingBlock[0, i]) = (
-                        fallingBlock[1, 1] + fallingBlock[0, 1] - fallingBlock[0, i],
-                        fallingBlock[0, 1] - fallingBlock[1, 1] + fallingBlock[1, i]);
-                }
+            fallingBlock.RotateFigure();
 
-            if(!GetCanFallingBlockMove(0,0))
-                Array.Copy(fallingBlockTemp, fallingBlock, fallingBlock.Length);
+            if (!GetCanFallingBlockMove(0, 0))
+                Array.Copy(fallingBlockTemp, fallingBlock.Coordinates, fallingBlock.Coordinates.Length);
         }
 
-        private bool IsFallingBlockSquare()
-        {
-            return fallingBlock[0, 0] == fallingBlock[0, 3] &&
-                   fallingBlock[0, 1] == fallingBlock[0, 2] &&
-                   fallingBlock[1, 0] == fallingBlock[1, 1] &&
-                   fallingBlock[1, 2] == fallingBlock[1, 3];
-        }
 
         private bool GetCanFallingBlockMove(int offsetX, int offsetY)
         {
             int cellsMoveCount = 0;
             for (int i = 0; i < 4; i++)
-                if (fallingBlock[1, i] + offsetX < FieldWidth && fallingBlock[1, i] + offsetX >= 0 &&
-                    fallingBlock[0, i] + offsetY < FieldHeight && fallingBlock[0, i] + offsetY >= 0 &&
-                    gameField[fallingBlock[1, i] + offsetX, fallingBlock[0, i] + offsetY] != 1)
+                if (fallingBlock.Coordinates[1, i] + offsetX < FieldWidth &&
+                    fallingBlock.Coordinates[1, i] + offsetX >= 0 &&
+                    fallingBlock.Coordinates[0, i] + offsetY < FieldHeight &&
+                    fallingBlock.Coordinates[0, i] + offsetY >= 0 &&
+                    gameField[fallingBlock.Coordinates[1, i] + offsetX, fallingBlock.Coordinates[0, i] + offsetY] != 1)
                 {
                     cellsMoveCount++;
                 }
@@ -198,7 +185,8 @@ namespace Tetris
         {
             for (int i = 0; i < 4; i++)
             {
-                graphics.FillRectangle(Brushes.Red, fallingBlock[1, i] * cellSize, fallingBlock[0, i] * cellSize,
+                graphics.FillRectangle(Brushes.Red, fallingBlock.Coordinates[1, i] * cellSize,
+                    fallingBlock.Coordinates[0, i] * cellSize,
                     cellSize, cellSize);
             }
         }
