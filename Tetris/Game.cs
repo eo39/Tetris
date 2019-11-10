@@ -129,6 +129,19 @@ namespace Tetris
                 case Keys.W:
                     fallingBlock.RotateBlock(FieldWidth, FieldHeight);
                     break;
+
+                case Keys.Left:
+                    FallingBlockMove(-1, 0);
+                    break;
+                case Keys.Right:
+                    FallingBlockMove(1, 0);
+                    break;
+                case Keys.Down:
+                    FallingBlockMove(0, 1);
+                    break;
+                case Keys.Up:
+                    fallingBlock.RotateBlock(FieldWidth, FieldHeight);
+                    break;
             }
         }
 
