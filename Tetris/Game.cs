@@ -84,7 +84,7 @@ namespace Tetris
         {
             int deletedLinesCount = 0;
 
-            for (int i = FieldHeight; i > 2; i--)
+            for (int i = 0; i <= FieldHeight; i++)
             {
                 int cellsInLineCount = Enumerable.Range(0, gameField.GetLength(0))
                     .Select(j => gameField[j, i])
