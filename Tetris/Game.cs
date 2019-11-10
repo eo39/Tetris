@@ -8,6 +8,7 @@ namespace Tetris
     internal class Game
     {
         private readonly Random random;
+        private readonly Font font = new Font("Arial", 15);
         private readonly int cellSize;
 
         private const int FieldHeight = 20;
@@ -29,6 +30,7 @@ namespace Tetris
         public void StartGame()
         {
             gameField = new int[FieldWidth + 1, FieldHeight + 1];
+            gameScore = 0;
             fallingBlock = GetNewBlock();
             nextFallingBlock = GetNewBlock();
         }
@@ -82,19 +84,20 @@ namespace Tetris
         {
             int deletedLinesCount = 0;
 
-            for (int i = FieldHeight - 1; i > 2; i--)
+            for (int i = FieldHeight; i > 2; i--)
             {
-                bool isNotLineFull = Enumerable.Range(0, gameField.GetLength(0))
-                                               .Select(j => gameField[j, i])
-                                               .Count(t => t == 1) != FieldWidth;
+                int cellsInLineCount = Enumerable.Range(0, gameField.GetLength(0))
+                    .Select(j => gameField[j, i])
+                    .Count(t => t == 1);
 
-                if (isNotLineFull) continue;
+                if (cellsInLineCount != FieldWidth) continue;
+
+                deletedLinesCount++;
 
                 for (int k = i; k > 1; k--)
                     for (int l = 1; l < FieldWidth - 1; l++)
                     {
                         gameField[l, k] = gameField[l, k - 1];
-                        deletedLinesCount++;
                     }
             }
 
@@ -137,24 +140,24 @@ namespace Tetris
 
         private bool GetCanFallingBlockMove(int offsetX, int offsetY)
         {
-            int cellsMoveCount = 0;
             for (int i = 0; i < 4; i++)
-                if (fallingBlock.Coordinates[1, i] + offsetX < FieldWidth &&
-                    fallingBlock.Coordinates[1, i] + offsetX >= 0 &&
-                    fallingBlock.Coordinates[0, i] + offsetY < FieldHeight &&
-                    fallingBlock.Coordinates[0, i] + offsetY >= 0 &&
-                    gameField[fallingBlock.Coordinates[1, i] + offsetX, fallingBlock.Coordinates[0, i] + offsetY] != 1)
+                if (fallingBlock.Coordinates[1, i] + offsetX >= FieldWidth ||
+                    fallingBlock.Coordinates[1, i] + offsetX < 0 ||
+                    fallingBlock.Coordinates[0, i] + offsetY >= FieldHeight ||
+                    fallingBlock.Coordinates[0, i] + offsetY < 0 ||
+                    gameField[fallingBlock.Coordinates[1, i] + offsetX, fallingBlock.Coordinates[0, i] + offsetY] == 1)
                 {
-                    cellsMoveCount++;
+                    return false;
                 }
 
-            return cellsMoveCount >= 4;
+            return true;
         }
 
         public void Draw(Graphics graphics)
         {
             DrawField(graphics);
             DrawFallingBlock(graphics);
+            DrawInterface(graphics);
         }
 
         private void DrawField(Graphics graphics)
@@ -178,6 +181,24 @@ namespace Tetris
                     fallingBlock.Coordinates[0, i] * cellSize,
                     cellSize, cellSize);
             }
+        }
+
+        private void DrawInterface(Graphics graphics)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                graphics.DrawRectangle(Pens.Black, nextFallingBlock.Coordinates[1, i] * cellSize + 210,
+                    nextFallingBlock.Coordinates[0, i] * cellSize + 57,
+                    cellSize, cellSize);
+                graphics.FillRectangle(Brushes.Red, nextFallingBlock.Coordinates[1, i] * cellSize + 210,
+                    nextFallingBlock.Coordinates[0, i] * cellSize + 57,
+                    cellSize, cellSize);
+            }
+
+            graphics.DrawRectangle(Pens.Black, 290, 30, 109, 109);
+
+            graphics.DrawString("Next block:", font, Brushes.Black, 290, 0);
+            graphics.DrawString("Score: " + gameScore, font, Brushes.Black, 290, 150);
         }
 
         private void AddScore(int deletedLinesCount)

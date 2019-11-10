@@ -38,7 +38,7 @@
             // 
             this.gameField.Location = new System.Drawing.Point(12, 12);
             this.gameField.Name = "gameField";
-            this.gameField.Size = new System.Drawing.Size(381, 673);
+            this.gameField.Size = new System.Drawing.Size(541, 673);
             this.gameField.TabIndex = 0;
             this.gameField.TabStop = false;
             this.gameField.Paint += new System.Windows.Forms.PaintEventHandler(this.Draw);

@@ -33,7 +33,7 @@ namespace Tetris
                     rotateMode = 1;
                     break;
                 case "I":
-                    Coordinates = new[,] {{0, 0, 0, 0}, {4, 3, 5, 2}};
+                    Coordinates = new[,] {{0, 0, 0, 0}, {5, 4, 6, 3}};
                     rotateMode = 1;
                     break;
                 case "O":
@@ -87,15 +87,14 @@ namespace Tetris
 
         private bool GetCanBlockRotate(int gameFieldWidth, int gameFieldHeight)
         {
-            int cellsMoveCount = 0;
             for (int i = 0; i < 4; i++)
-                if (Coordinates[1, i] < gameFieldWidth && Coordinates[1, i] >= 0 &&
-                    Coordinates[0, i] < gameFieldHeight && Coordinates[0, i] >= 0)
+                if (Coordinates[1, i] >= gameFieldWidth || Coordinates[1, i] < 0 ||
+                    Coordinates[0, i] >= gameFieldHeight || Coordinates[0, i] < 0)
                 {
-                    cellsMoveCount++;
+                    return false;
                 }
 
-            return cellsMoveCount >= 4;
+            return true;
         }
 
         private void RotateCoordinates(string direction)
