@@ -15,7 +15,7 @@ namespace Tetris
 
         private Figure currentFigure;
         private Figure nextFigure;
-        private int[,] gameField;
+        private bool[,] gameField;
         private int gameScore;
 
         public event Action Defeat = delegate { };
@@ -27,7 +27,7 @@ namespace Tetris
 
         public void StartGame()
         {
-            gameField = new int[FieldWidth, FieldHeight];
+            gameField = new bool[FieldWidth, FieldHeight];
             gameScore = 0;
             currentFigure = Figure.BuildRandomFigure();
             nextFigure = Figure.BuildRandomFigure();
@@ -50,9 +50,9 @@ namespace Tetris
             for (int i = 0; i < FieldHeight; i++)
             {
                 int cellsInLineCount = Enumerable.Range(0, gameField.GetLength(0))
-                    .Count(j => gameField[j, i] == 1);
+                    .Count(j => gameField[j, i]);
 
-                if (cellsInLineCount != FieldWidth) 
+                if (cellsInLineCount != FieldWidth)
                     continue;
 
                 deletedLinesCount++;
@@ -69,11 +69,7 @@ namespace Tetris
 
         private bool IsDefeat()
         {
-            for (int i = 0; i < 4; i++)
-                if (gameField[currentFigure.Coordinates[1, i], currentFigure.Coordinates[0, i]] == 1)
-                    return true;
-
-            return false;
+            return currentFigure.Cells.Any(point => gameField[point.X, point.Y]);
         }
 
         public void OffsetCurrentFigure(Keys keyCode)
@@ -98,9 +94,8 @@ namespace Tetris
                     break;
                 case Keys.Space:
                     while (CanCurrentFigureMove(0, 1))
-                    {
                         MoveCurrentFigure(0, 1);
-                    }
+
                     Update();
                     break;
             }
@@ -112,30 +107,23 @@ namespace Tetris
                 currentFigure.ChangeCoordinates(offsetX, offsetY);
             else
             {
-                if (offsetX == 0)
-                {
-                    for (int i = 0; i < 4; i++)
-                        gameField[currentFigure.Coordinates[1, i], currentFigure.Coordinates[0, i]] = 1;
+                if (offsetX != 0) return;
 
-                    currentFigure = nextFigure;
-                    nextFigure = Figure.BuildRandomFigure();
-                }
+                for (int i = 0; i < 4; i++)
+                    gameField[currentFigure.Cells[i].X, currentFigure.Cells[i].Y] = true;
+
+                currentFigure = nextFigure;
+                nextFigure = Figure.BuildRandomFigure();
             }
         }
 
         private bool CanCurrentFigureMove(int offsetX, int offsetY)
         {
-            for (int i = 0; i < 4; i++)
-                if (currentFigure.Coordinates[1, i] + offsetX >= FieldWidth ||
-                    currentFigure.Coordinates[1, i] + offsetX < 0 ||
-                    currentFigure.Coordinates[0, i] + offsetY >= FieldHeight ||
-                    currentFigure.Coordinates[0, i] + offsetY < 0 ||
-                    gameField[currentFigure.Coordinates[1, i] + offsetX, currentFigure.Coordinates[0, i] + offsetY] == 1)
-                {
-                    return false;
-                }
-
-            return true;
+            return currentFigure.Cells.All(point => point.X + offsetX < FieldWidth &&
+                                                    point.X + offsetX >= 0 &&
+                                                    point.Y + offsetY < FieldHeight &&
+                                                    point.Y + offsetY >= 0 &&
+                                                    !gameField[point.X + offsetX, point.Y + offsetY]);
         }
 
         public void Draw(Graphics graphics)
@@ -156,31 +144,25 @@ namespace Tetris
             for (int x = 0; x < FieldWidth; x++)
                 for (int y = 0; y < FieldHeight; y++)
                 {
-                    if (gameField[x, y] == 1)
+                    if (gameField[x, y])
                         graphics.FillRectangle(Brushes.Blue, x * cellSize, y * cellSize, cellSize, cellSize);
                 }
         }
 
         private void DrawCurrentFigure(Graphics graphics)
         {
-            for (int i = 0; i < 4; i++)
-            {
-                graphics.FillRectangle(Brushes.Red, currentFigure.Coordinates[1, i] * cellSize,
-                    currentFigure.Coordinates[0, i] * cellSize,
-                    cellSize, cellSize);
-            }
+            foreach (Point point in currentFigure.Cells)
+                graphics.FillRectangle(Brushes.Red, point.X * cellSize, point.Y * cellSize, cellSize, cellSize);
         }
 
         private void DrawInterface(Graphics graphics)
         {
-            for (int i = 0; i < 4; i++)
+            foreach (Point point in nextFigure.Cells)
             {
-                graphics.DrawRectangle(Pens.Black, nextFigure.Coordinates[1, i] * cellSize + 210,
-                    nextFigure.Coordinates[0, i] * cellSize + 57,
-                    cellSize, cellSize);
-                graphics.FillRectangle(Brushes.Red, nextFigure.Coordinates[1, i] * cellSize + 210,
-                    nextFigure.Coordinates[0, i] * cellSize + 57,
-                    cellSize, cellSize);
+                graphics.DrawRectangle(Pens.Black, point.X * cellSize + 210, point.Y * cellSize + 57, cellSize,
+                    cellSize);
+                graphics.FillRectangle(Brushes.Red, point.X * cellSize + 210, point.Y * cellSize + 57, cellSize,
+                    cellSize);
             }
 
             graphics.DrawRectangle(Pens.Black, 290, 30, 109, 109);
