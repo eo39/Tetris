@@ -2,46 +2,34 @@
 
 namespace Tetris
 {
-    class Block
+    class Figure
     {
         public int[,] Coordinates { get; }
 
-        private readonly string blockType;
+        private static readonly Random random = new Random();
+        private readonly FigureType figureType;
         private int rotateMode;
 
-        public Block(string blockType)
+        private Figure(FigureType figureType, int rotateMode, int[,] coordinates)
         {
-            this.blockType = blockType;
+            this.figureType = figureType;
+            this.rotateMode = rotateMode;
+            Coordinates = coordinates;
+        }
 
-            switch (this.blockType)
+        public static Figure BuildRandomFigure()
+        {
+            switch (random.Next(8))
             {
-                case "T":
-                    Coordinates = new[,] {{0, 1, 1, 1}, {4, 4, 3, 5}};
-                    break;
-                case "L":
-                    Coordinates = new[,] {{0, 1, 2, 2}, {4, 4, 4, 5}};
-                    break;
-                case "J":
-                    Coordinates = new[,] {{0, 1, 2, 2}, {5, 5, 5, 4}};
-                    break;
-                case "Z":
-                    Coordinates = new[,] {{0, 1, 0, 1}, {3, 4, 4, 5}};
-                    rotateMode = 1;
-                    break;
-                case "S":
-                    Coordinates = new[,] {{0, 1, 0, 1}, {5, 4, 4, 3}};
-                    rotateMode = 1;
-                    break;
-                case "I":
-                    Coordinates = new[,] {{0, 0, 0, 0}, {5, 4, 6, 3}};
-                    rotateMode = 1;
-                    break;
-                case "O":
-                    Coordinates = new[,] {{0, 1, 1, 0}, {4, 4, 5, 5}};
-                    break;
-                case "Point":
-                    Coordinates = new[,] {{0, 0, 0, 0}, {4, 4, 4, 4}};
-                    break;
+                case 0: return new Figure(FigureType.T, 0, new[,] {{0, 1, 1, 1}, {4, 4, 3, 5}});
+                case 1: return new Figure(FigureType.J, 0, new[,] {{0, 1, 2, 2}, {5, 5, 5, 4}});
+                case 2: return new Figure(FigureType.L, 0, new[,] {{0, 1, 2, 2}, {4, 4, 4, 5}});
+                case 3: return new Figure(FigureType.Z, 1, new[,] {{0, 1, 0, 1}, {3, 4, 4, 5}});
+                case 4: return new Figure(FigureType.S, 1, new[,] {{0, 1, 0, 1}, {5, 4, 4, 3}});
+                case 5: return new Figure(FigureType.I, 1, new[,] {{0, 0, 0, 0}, {5, 4, 6, 3}});
+                case 6: return new Figure(FigureType.O, 0, new[,] {{0, 1, 1, 0}, {4, 4, 5, 5}});
+                case 7: return new Figure(FigureType.Point, 0, new[,] {{0, 0, 0, 0}, {4, 4, 4, 4}});
+                default: throw new ArgumentOutOfRangeException();
             }
         }
 
@@ -54,42 +42,43 @@ namespace Tetris
             }
         }
 
-        public void RotateBlock(int gameFieldWidth, int gameFieldHeight)
+        public void RotateFigure(int[,] gameField, int gameFieldWidth, int gameFieldHeight)
         {
             int[,] fallingBlockTemp = new int[2, 4];
             Array.Copy(Coordinates, fallingBlockTemp, Coordinates.Length);
 
-            switch (blockType)
+            switch (figureType)
             {
-                case "T":
+                case FigureType.T:
                     RotateCoordinates("Right");
                     break;
-                case "L":
+                case FigureType.J:
                     RotateCoordinates("Right");
                     break;
-                case "J":
+                case FigureType.L:
                     RotateCoordinates("Right");
                     break;
-                case "Z":
+                case FigureType.Z:
                     RotateCoordinates();
                     break;
-                case "S":
+                case FigureType.S:
                     RotateCoordinates();
                     break;
-                case "I":
+                case FigureType.I:
                     RotateCoordinates();
                     break;
             }
 
-            if (!GetCanBlockRotate(gameFieldWidth, gameFieldHeight))
+            if (!GetFigureRotate(gameField, gameFieldWidth, gameFieldHeight))
                 Array.Copy(fallingBlockTemp, Coordinates, Coordinates.Length);
         }
 
-        private bool GetCanBlockRotate(int gameFieldWidth, int gameFieldHeight)
+        private bool GetFigureRotate(int[,] gameField, int gameFieldWidth, int gameFieldHeight)
         {
             for (int i = 0; i < 4; i++)
                 if (Coordinates[1, i] >= gameFieldWidth || Coordinates[1, i] < 0 ||
-                    Coordinates[0, i] >= gameFieldHeight || Coordinates[0, i] < 0)
+                    Coordinates[0, i] >= gameFieldHeight || Coordinates[0, i] < 0 ||
+                    gameField[Coordinates[1, i], Coordinates[0, i]] == 1)
                 {
                     return false;
                 }

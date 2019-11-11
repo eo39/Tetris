@@ -7,15 +7,14 @@ namespace Tetris
 {
     internal class Game
     {
-        private readonly Random random;
         private readonly Font font = new Font("Arial", 15);
         private readonly int cellSize;
 
         private const int FieldHeight = 20;
         private const int FieldWidth = 10;
 
-        private Block fallingBlock;
-        private Block nextFallingBlock;
+        private Figure fallingFigure;
+        private Figure nextFallingFigure;
         private int[,] gameField;
         private int gameScore;
 
@@ -23,7 +22,6 @@ namespace Tetris
 
         public Game(int cellSize)
         {
-            random = new Random();
             this.cellSize = cellSize;
         }
 
@@ -31,47 +29,23 @@ namespace Tetris
         {
             gameField = new int[FieldWidth + 1, FieldHeight + 1];
             gameScore = 0;
-            fallingBlock = GetNewBlock();
-            nextFallingBlock = GetNewBlock();
+            fallingFigure = Figure.BuildRandomFigure();
+            nextFallingFigure = Figure.BuildRandomFigure();
         }
 
-        private Block GetNewBlock()
-        {
-            switch (random.Next(8))
-            {
-                case 0:
-                    return new Block("T");
-                case 1:
-                    return new Block("J");
-                case 2:
-                    return new Block("L");
-                case 3:
-                    return new Block("Z");
-                case 4:
-                    return new Block("S");
-                case 5:
-                    return new Block("I");
-                case 6:
-                    return new Block("O");
-                case 7:
-                    return new Block("Point");
-                default:
-                    return null;
-            }
-        }
 
         public void Update()
         {
             for (int i = 0; i < 4; i++)
-                fallingBlock.Coordinates[0, i]++;
+                fallingFigure.Coordinates[0, i]++;
 
-            if (!GetCanFallingBlockMove(0, 0))
+            if (!GetFallingBlockMove(0, 0))
             {
                 for (int i = 0; i < 4; i++)
-                    gameField[fallingBlock.Coordinates[1, i], fallingBlock.Coordinates[0, i] - 1] = 1;
+                    gameField[fallingFigure.Coordinates[1, i], fallingFigure.Coordinates[0, i] - 1] = 1;
 
-                fallingBlock = nextFallingBlock;
-                nextFallingBlock = GetNewBlock();
+                fallingFigure = nextFallingFigure;
+                nextFallingFigure = Figure.BuildRandomFigure();
             }
 
             DeleteFullLines();
@@ -87,8 +61,7 @@ namespace Tetris
             for (int i = 0; i <= FieldHeight; i++)
             {
                 int cellsInLineCount = Enumerable.Range(0, gameField.GetLength(0))
-                    .Select(j => gameField[j, i])
-                    .Count(t => t == 1);
+                    .Count(j => gameField[j, i] == 1);
 
                 if (cellsInLineCount != FieldWidth) continue;
 
@@ -101,64 +74,61 @@ namespace Tetris
                     }
             }
 
-            AddScore(deletedLinesCount);
+            gameScore += (int) (100 * (Math.Pow(2, deletedLinesCount) - 1));
         }
 
         private bool IsDefeat()
         {
             for (int i = 0; i < 4; i++)
-                if (gameField[fallingBlock.Coordinates[1, i], fallingBlock.Coordinates[0, i]] == 1)
+                if (gameField[fallingFigure.Coordinates[1, i], fallingFigure.Coordinates[0, i]] == 1)
                     return true;
 
             return false;
         }
 
-        public void OffsettingFallingBlock(Keys keyCode)
+        public void MoveFallingBlock(Keys keyCode)
         {
             switch (keyCode)
             {
                 case Keys.A:
-                    FallingBlockMove(-1, 0);
-                    break;
-                case Keys.D:
-                    FallingBlockMove(1, 0);
-                    break;
-                case Keys.S:
-                    FallingBlockMove(0, 1);
-                    break;
-                case Keys.W:
-                    fallingBlock.RotateBlock(FieldWidth, FieldHeight);
-                    break;
-
                 case Keys.Left:
                     FallingBlockMove(-1, 0);
                     break;
+                case Keys.D:
                 case Keys.Right:
                     FallingBlockMove(1, 0);
                     break;
+                case Keys.S:
                 case Keys.Down:
                     FallingBlockMove(0, 1);
                     break;
+                case Keys.W:
                 case Keys.Up:
-                    fallingBlock.RotateBlock(FieldWidth, FieldHeight);
+                    fallingFigure.RotateFigure(gameField, FieldWidth, FieldHeight);
+                    break;
+                case Keys.Space:
+                    while (GetFallingBlockMove(0, 1))
+                    {
+                        FallingBlockMove(0, 1);
+                    }
                     break;
             }
         }
 
         private void FallingBlockMove(int offsetX, int offsetY)
         {
-            if (GetCanFallingBlockMove(offsetX, offsetY))
-                fallingBlock.ChangeCoordinates(offsetX, offsetY);
+            if (GetFallingBlockMove(offsetX, offsetY))
+                fallingFigure.ChangeCoordinates(offsetX, offsetY);
         }
 
-        private bool GetCanFallingBlockMove(int offsetX, int offsetY)
+        private bool GetFallingBlockMove(int offsetX, int offsetY)
         {
             for (int i = 0; i < 4; i++)
-                if (fallingBlock.Coordinates[1, i] + offsetX >= FieldWidth ||
-                    fallingBlock.Coordinates[1, i] + offsetX < 0 ||
-                    fallingBlock.Coordinates[0, i] + offsetY >= FieldHeight ||
-                    fallingBlock.Coordinates[0, i] + offsetY < 0 ||
-                    gameField[fallingBlock.Coordinates[1, i] + offsetX, fallingBlock.Coordinates[0, i] + offsetY] == 1)
+                if (fallingFigure.Coordinates[1, i] + offsetX >= FieldWidth ||
+                    fallingFigure.Coordinates[1, i] + offsetX < 0 ||
+                    fallingFigure.Coordinates[0, i] + offsetY >= FieldHeight ||
+                    fallingFigure.Coordinates[0, i] + offsetY < 0 ||
+                    gameField[fallingFigure.Coordinates[1, i] + offsetX, fallingFigure.Coordinates[0, i] + offsetY] == 1)
                 {
                     return false;
                 }
@@ -176,11 +146,14 @@ namespace Tetris
         private void DrawField(Graphics graphics)
         {
             for (int x = 0; x <= FieldWidth; x++)
+                graphics.DrawLine(Pens.Black, x * cellSize, 0, x * cellSize, FieldHeight * cellSize);
+
+            for (int y = 0; y <= FieldHeight; y++)
+                graphics.DrawLine(Pens.Black, 0, y * cellSize, FieldWidth * cellSize, y * cellSize);
+
+            for (int x = 0; x <= FieldWidth; x++)
                 for (int y = 0; y <= FieldHeight; y++)
                 {
-                    graphics.DrawLine(Pens.Black, x * cellSize, y * cellSize, FieldWidth - x * cellSize, y * cellSize);
-                    graphics.DrawLine(Pens.Black, x * cellSize, y * cellSize, x * cellSize, FieldHeight - y * cellSize);
-
                     if (gameField[x, y] == 1)
                         graphics.FillRectangle(Brushes.Blue, x * cellSize, y * cellSize, cellSize, cellSize);
                 }
@@ -190,8 +163,8 @@ namespace Tetris
         {
             for (int i = 0; i < 4; i++)
             {
-                graphics.FillRectangle(Brushes.Red, fallingBlock.Coordinates[1, i] * cellSize,
-                    fallingBlock.Coordinates[0, i] * cellSize,
+                graphics.FillRectangle(Brushes.Red, fallingFigure.Coordinates[1, i] * cellSize,
+                    fallingFigure.Coordinates[0, i] * cellSize,
                     cellSize, cellSize);
             }
         }
@@ -200,37 +173,17 @@ namespace Tetris
         {
             for (int i = 0; i < 4; i++)
             {
-                graphics.DrawRectangle(Pens.Black, nextFallingBlock.Coordinates[1, i] * cellSize + 210,
-                    nextFallingBlock.Coordinates[0, i] * cellSize + 57,
+                graphics.DrawRectangle(Pens.Black, nextFallingFigure.Coordinates[1, i] * cellSize + 210,
+                    nextFallingFigure.Coordinates[0, i] * cellSize + 57,
                     cellSize, cellSize);
-                graphics.FillRectangle(Brushes.Red, nextFallingBlock.Coordinates[1, i] * cellSize + 210,
-                    nextFallingBlock.Coordinates[0, i] * cellSize + 57,
+                graphics.FillRectangle(Brushes.Red, nextFallingFigure.Coordinates[1, i] * cellSize + 210,
+                    nextFallingFigure.Coordinates[0, i] * cellSize + 57,
                     cellSize, cellSize);
             }
 
             graphics.DrawRectangle(Pens.Black, 290, 30, 109, 109);
-
             graphics.DrawString("Next block:", font, Brushes.Black, 290, 0);
             graphics.DrawString("Score: " + gameScore, font, Brushes.Black, 290, 150);
-        }
-
-        private void AddScore(int deletedLinesCount)
-        {
-            switch (deletedLinesCount)
-            {
-                case 1:
-                    gameScore += 100;
-                    break;
-                case 2:
-                    gameScore += 300;
-                    break;
-                case 3:
-                    gameScore += 700;
-                    break;
-                case 4:
-                    gameScore += 1500;
-                    break;
-            }
         }
     }
 }
