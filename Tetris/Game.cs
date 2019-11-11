@@ -36,18 +36,7 @@ namespace Tetris
 
         public void Update()
         {
-            for (int i = 0; i < 4; i++)
-                currentFigure.Coordinates[0, i]++;
-
-            if (!CanCurrentFigureMove(0, 0))
-            {
-                for (int i = 0; i < 4; i++)
-                    gameField[currentFigure.Coordinates[1, i], currentFigure.Coordinates[0, i] - 1] = 1;
-
-                currentFigure = nextFigure;
-                nextFigure = Figure.BuildRandomFigure();
-            }
-
+            MoveCurrentFigure(0, 1);
             DeleteFullLines();
 
             if (IsDefeat())
@@ -63,7 +52,8 @@ namespace Tetris
                 int cellsInLineCount = Enumerable.Range(0, gameField.GetLength(0))
                     .Count(j => gameField[j, i] == 1);
 
-                if (cellsInLineCount != FieldWidth) continue;
+                if (cellsInLineCount != FieldWidth) 
+                    continue;
 
                 deletedLinesCount++;
 
@@ -86,21 +76,21 @@ namespace Tetris
             return false;
         }
 
-        public void Move(Keys keyCode)
+        public void OffsetCurrentFigure(Keys keyCode)
         {
             switch (keyCode)
             {
                 case Keys.A:
                 case Keys.Left:
-                    CurrentFigureMove(-1, 0);
+                    MoveCurrentFigure(-1, 0);
                     break;
                 case Keys.D:
                 case Keys.Right:
-                    CurrentFigureMove(1, 0);
+                    MoveCurrentFigure(1, 0);
                     break;
                 case Keys.S:
                 case Keys.Down:
-                    CurrentFigureMove(0, 1);
+                    MoveCurrentFigure(0, 1);
                     break;
                 case Keys.W:
                 case Keys.Up:
@@ -109,17 +99,28 @@ namespace Tetris
                 case Keys.Space:
                     while (CanCurrentFigureMove(0, 1))
                     {
-                        CurrentFigureMove(0, 1);
+                        MoveCurrentFigure(0, 1);
                     }
                     Update();
                     break;
             }
         }
 
-        private void CurrentFigureMove(int offsetX, int offsetY)
+        private void MoveCurrentFigure(int offsetX, int offsetY)
         {
             if (CanCurrentFigureMove(offsetX, offsetY))
                 currentFigure.ChangeCoordinates(offsetX, offsetY);
+            else
+            {
+                if (offsetX == 0)
+                {
+                    for (int i = 0; i < 4; i++)
+                        gameField[currentFigure.Coordinates[1, i], currentFigure.Coordinates[0, i]] = 1;
+
+                    currentFigure = nextFigure;
+                    nextFigure = Figure.BuildRandomFigure();
+                }
+            }
         }
 
         private bool CanCurrentFigureMove(int offsetX, int offsetY)

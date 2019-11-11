@@ -39,7 +39,7 @@ namespace Tetris
 
         private void DownKey(object sender, KeyEventArgs e)
         {
-            game.Move(e.KeyCode);
+            game.OffsetCurrentFigure(e.KeyCode);
             gameField.Refresh();
         }
     }

@@ -17,7 +17,7 @@ namespace Tetris
             Coordinates = coordinates;
         }
 
-        public static Figure BuildRandomFigure()
+        public static Figure BuildRandomFigure() // First Array is Y coordinate, second is X coordinate
         {
             switch (Random.Next(8))
             {
@@ -121,7 +121,6 @@ namespace Tetris
                 RotateCoordinates("Left");
                 rotateMode = 1;
             }
-
         }
     }
 }
