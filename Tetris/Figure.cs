@@ -44,8 +44,8 @@ namespace Tetris
 
         public void RotateFigure(int[,] gameField, int gameFieldWidth, int gameFieldHeight)
         {
-            int[,] fallingBlockTemp = new int[2, 4];
-            Array.Copy(Coordinates, fallingBlockTemp, Coordinates.Length);
+            int[,] fallingFigureTemp = new int[2, 4];
+            Array.Copy(Coordinates, fallingFigureTemp, Coordinates.Length);
 
             switch (figureType)
             {
@@ -70,7 +70,7 @@ namespace Tetris
             }
 
             if (!GetFigureRotate(gameField, gameFieldWidth, gameFieldHeight))
-                Array.Copy(fallingBlockTemp, Coordinates, Coordinates.Length);
+                Array.Copy(fallingFigureTemp, Coordinates, Coordinates.Length);
         }
 
         private bool GetFigureRotate(int[,] gameField, int gameFieldWidth, int gameFieldHeight)

@@ -39,7 +39,7 @@ namespace Tetris
             for (int i = 0; i < 4; i++)
                 fallingFigure.Coordinates[0, i]++;
 
-            if (!GetFallingBlockMove(0, 0))
+            if (!GetFallingFigureMove(0, 0))
             {
                 for (int i = 0; i < 4; i++)
                     gameField[fallingFigure.Coordinates[1, i], fallingFigure.Coordinates[0, i] - 1] = 1;
@@ -86,42 +86,42 @@ namespace Tetris
             return false;
         }
 
-        public void MoveFallingBlock(Keys keyCode)
+        public void Move(Keys keyCode)
         {
             switch (keyCode)
             {
                 case Keys.A:
                 case Keys.Left:
-                    FallingBlockMove(-1, 0);
+                    FallingFigureMove(-1, 0);
                     break;
                 case Keys.D:
                 case Keys.Right:
-                    FallingBlockMove(1, 0);
+                    FallingFigureMove(1, 0);
                     break;
                 case Keys.S:
                 case Keys.Down:
-                    FallingBlockMove(0, 1);
+                    FallingFigureMove(0, 1);
                     break;
                 case Keys.W:
                 case Keys.Up:
                     fallingFigure.RotateFigure(gameField, FieldWidth, FieldHeight);
                     break;
                 case Keys.Space:
-                    while (GetFallingBlockMove(0, 1))
+                    while (GetFallingFigureMove(0, 1))
                     {
-                        FallingBlockMove(0, 1);
+                        FallingFigureMove(0, 1);
                     }
                     break;
             }
         }
 
-        private void FallingBlockMove(int offsetX, int offsetY)
+        private void FallingFigureMove(int offsetX, int offsetY)
         {
-            if (GetFallingBlockMove(offsetX, offsetY))
+            if (GetFallingFigureMove(offsetX, offsetY))
                 fallingFigure.ChangeCoordinates(offsetX, offsetY);
         }
 
-        private bool GetFallingBlockMove(int offsetX, int offsetY)
+        private bool GetFallingFigureMove(int offsetX, int offsetY)
         {
             for (int i = 0; i < 4; i++)
                 if (fallingFigure.Coordinates[1, i] + offsetX >= FieldWidth ||
@@ -139,7 +139,7 @@ namespace Tetris
         public void Draw(Graphics graphics)
         {
             DrawField(graphics);
-            DrawFallingBlock(graphics);
+            DrawFallingFigure(graphics);
             DrawInterface(graphics);
         }
 
@@ -159,7 +159,7 @@ namespace Tetris
                 }
         }
 
-        private void DrawFallingBlock(Graphics graphics)
+        private void DrawFallingFigure(Graphics graphics)
         {
             for (int i = 0; i < 4; i++)
             {
@@ -182,7 +182,7 @@ namespace Tetris
             }
 
             graphics.DrawRectangle(Pens.Black, 290, 30, 109, 109);
-            graphics.DrawString("Next block:", font, Brushes.Black, 290, 0);
+            graphics.DrawString("Next figure:", font, Brushes.Black, 290, 0);
             graphics.DrawString("Score: " + gameScore, font, Brushes.Black, 290, 150);
         }
     }

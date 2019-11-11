@@ -39,7 +39,7 @@ namespace Tetris
 
         private void DownKey(object sender, KeyEventArgs e)
         {
-            game.MoveFallingBlock(e.KeyCode);
+            game.Move(e.KeyCode);
             gameField.Refresh();
         }
     }
