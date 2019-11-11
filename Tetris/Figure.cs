@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Tetris
 {
-    class Figure
+    internal class Figure
     {
         public readonly Point[] Cells;
 
@@ -90,7 +90,7 @@ namespace Tetris
                                       point.X >= 0 && 
                                       point.Y < gameFieldHeight && 
                                       point.Y >= 0 && 
-                                      gameField[point.X, point.Y] );
+                                      !gameField[point.X, point.Y]);
         }
 
         private void RotateCoordinates(string direction)
