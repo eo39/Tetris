@@ -13,8 +13,8 @@ namespace Tetris
         private const int FieldHeight = 20;
         private const int FieldWidth = 10;
 
-        private Figure fallingFigure;
-        private Figure nextFallingFigure;
+        private Figure currentFigure;
+        private Figure nextFigure;
         private int[,] gameField;
         private int gameScore;
 
@@ -27,25 +27,25 @@ namespace Tetris
 
         public void StartGame()
         {
-            gameField = new int[FieldWidth + 1, FieldHeight + 1];
+            gameField = new int[FieldWidth, FieldHeight];
             gameScore = 0;
-            fallingFigure = Figure.BuildRandomFigure();
-            nextFallingFigure = Figure.BuildRandomFigure();
+            currentFigure = Figure.BuildRandomFigure();
+            nextFigure = Figure.BuildRandomFigure();
         }
 
 
         public void Update()
         {
             for (int i = 0; i < 4; i++)
-                fallingFigure.Coordinates[0, i]++;
+                currentFigure.Coordinates[0, i]++;
 
-            if (!GetFallingFigureMove(0, 0))
+            if (!CanCurrentFigureMove(0, 0))
             {
                 for (int i = 0; i < 4; i++)
-                    gameField[fallingFigure.Coordinates[1, i], fallingFigure.Coordinates[0, i] - 1] = 1;
+                    gameField[currentFigure.Coordinates[1, i], currentFigure.Coordinates[0, i] - 1] = 1;
 
-                fallingFigure = nextFallingFigure;
-                nextFallingFigure = Figure.BuildRandomFigure();
+                currentFigure = nextFigure;
+                nextFigure = Figure.BuildRandomFigure();
             }
 
             DeleteFullLines();
@@ -58,7 +58,7 @@ namespace Tetris
         {
             int deletedLinesCount = 0;
 
-            for (int i = 0; i <= FieldHeight; i++)
+            for (int i = 0; i < FieldHeight; i++)
             {
                 int cellsInLineCount = Enumerable.Range(0, gameField.GetLength(0))
                     .Count(j => gameField[j, i] == 1);
@@ -80,7 +80,7 @@ namespace Tetris
         private bool IsDefeat()
         {
             for (int i = 0; i < 4; i++)
-                if (gameField[fallingFigure.Coordinates[1, i], fallingFigure.Coordinates[0, i]] == 1)
+                if (gameField[currentFigure.Coordinates[1, i], currentFigure.Coordinates[0, i]] == 1)
                     return true;
 
             return false;
@@ -92,43 +92,44 @@ namespace Tetris
             {
                 case Keys.A:
                 case Keys.Left:
-                    FallingFigureMove(-1, 0);
+                    CurrentFigureMove(-1, 0);
                     break;
                 case Keys.D:
                 case Keys.Right:
-                    FallingFigureMove(1, 0);
+                    CurrentFigureMove(1, 0);
                     break;
                 case Keys.S:
                 case Keys.Down:
-                    FallingFigureMove(0, 1);
+                    CurrentFigureMove(0, 1);
                     break;
                 case Keys.W:
                 case Keys.Up:
-                    fallingFigure.RotateFigure(gameField, FieldWidth, FieldHeight);
+                    currentFigure.RotateFigure(gameField, FieldWidth, FieldHeight);
                     break;
                 case Keys.Space:
-                    while (GetFallingFigureMove(0, 1))
+                    while (CanCurrentFigureMove(0, 1))
                     {
-                        FallingFigureMove(0, 1);
+                        CurrentFigureMove(0, 1);
                     }
+                    Update();
                     break;
             }
         }
 
-        private void FallingFigureMove(int offsetX, int offsetY)
+        private void CurrentFigureMove(int offsetX, int offsetY)
         {
-            if (GetFallingFigureMove(offsetX, offsetY))
-                fallingFigure.ChangeCoordinates(offsetX, offsetY);
+            if (CanCurrentFigureMove(offsetX, offsetY))
+                currentFigure.ChangeCoordinates(offsetX, offsetY);
         }
 
-        private bool GetFallingFigureMove(int offsetX, int offsetY)
+        private bool CanCurrentFigureMove(int offsetX, int offsetY)
         {
             for (int i = 0; i < 4; i++)
-                if (fallingFigure.Coordinates[1, i] + offsetX >= FieldWidth ||
-                    fallingFigure.Coordinates[1, i] + offsetX < 0 ||
-                    fallingFigure.Coordinates[0, i] + offsetY >= FieldHeight ||
-                    fallingFigure.Coordinates[0, i] + offsetY < 0 ||
-                    gameField[fallingFigure.Coordinates[1, i] + offsetX, fallingFigure.Coordinates[0, i] + offsetY] == 1)
+                if (currentFigure.Coordinates[1, i] + offsetX >= FieldWidth ||
+                    currentFigure.Coordinates[1, i] + offsetX < 0 ||
+                    currentFigure.Coordinates[0, i] + offsetY >= FieldHeight ||
+                    currentFigure.Coordinates[0, i] + offsetY < 0 ||
+                    gameField[currentFigure.Coordinates[1, i] + offsetX, currentFigure.Coordinates[0, i] + offsetY] == 1)
                 {
                     return false;
                 }
@@ -139,7 +140,7 @@ namespace Tetris
         public void Draw(Graphics graphics)
         {
             DrawField(graphics);
-            DrawFallingFigure(graphics);
+            DrawCurrentFigure(graphics);
             DrawInterface(graphics);
         }
 
@@ -151,20 +152,20 @@ namespace Tetris
             for (int y = 0; y <= FieldHeight; y++)
                 graphics.DrawLine(Pens.Black, 0, y * cellSize, FieldWidth * cellSize, y * cellSize);
 
-            for (int x = 0; x <= FieldWidth; x++)
-                for (int y = 0; y <= FieldHeight; y++)
+            for (int x = 0; x < FieldWidth; x++)
+                for (int y = 0; y < FieldHeight; y++)
                 {
                     if (gameField[x, y] == 1)
                         graphics.FillRectangle(Brushes.Blue, x * cellSize, y * cellSize, cellSize, cellSize);
                 }
         }
 
-        private void DrawFallingFigure(Graphics graphics)
+        private void DrawCurrentFigure(Graphics graphics)
         {
             for (int i = 0; i < 4; i++)
             {
-                graphics.FillRectangle(Brushes.Red, fallingFigure.Coordinates[1, i] * cellSize,
-                    fallingFigure.Coordinates[0, i] * cellSize,
+                graphics.FillRectangle(Brushes.Red, currentFigure.Coordinates[1, i] * cellSize,
+                    currentFigure.Coordinates[0, i] * cellSize,
                     cellSize, cellSize);
             }
         }
@@ -173,11 +174,11 @@ namespace Tetris
         {
             for (int i = 0; i < 4; i++)
             {
-                graphics.DrawRectangle(Pens.Black, nextFallingFigure.Coordinates[1, i] * cellSize + 210,
-                    nextFallingFigure.Coordinates[0, i] * cellSize + 57,
+                graphics.DrawRectangle(Pens.Black, nextFigure.Coordinates[1, i] * cellSize + 210,
+                    nextFigure.Coordinates[0, i] * cellSize + 57,
                     cellSize, cellSize);
-                graphics.FillRectangle(Brushes.Red, nextFallingFigure.Coordinates[1, i] * cellSize + 210,
-                    nextFallingFigure.Coordinates[0, i] * cellSize + 57,
+                graphics.FillRectangle(Brushes.Red, nextFigure.Coordinates[1, i] * cellSize + 210,
+                    nextFigure.Coordinates[0, i] * cellSize + 57,
                     cellSize, cellSize);
             }
 

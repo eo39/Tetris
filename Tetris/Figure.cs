@@ -6,7 +6,7 @@ namespace Tetris
     {
         public int[,] Coordinates { get; }
 
-        private static readonly Random random = new Random();
+        private static readonly Random Random = new Random();
         private readonly FigureType figureType;
         private int rotateMode;
 
@@ -19,7 +19,7 @@ namespace Tetris
 
         public static Figure BuildRandomFigure()
         {
-            switch (random.Next(8))
+            switch (Random.Next(8))
             {
                 case 0: return new Figure(FigureType.T, 0, new[,] {{0, 1, 1, 1}, {4, 4, 3, 5}});
                 case 1: return new Figure(FigureType.J, 0, new[,] {{0, 1, 2, 2}, {5, 5, 5, 4}});
@@ -44,36 +44,29 @@ namespace Tetris
 
         public void RotateFigure(int[,] gameField, int gameFieldWidth, int gameFieldHeight)
         {
-            int[,] fallingFigureTemp = new int[2, 4];
-            Array.Copy(Coordinates, fallingFigureTemp, Coordinates.Length);
+            int[,] currentFigureTemp = new int[2, 4];
+            Array.Copy(Coordinates, currentFigureTemp, Coordinates.Length);
 
             switch (figureType)
             {
                 case FigureType.T:
-                    RotateCoordinates("Right");
-                    break;
                 case FigureType.J:
-                    RotateCoordinates("Right");
-                    break;
                 case FigureType.L:
                     RotateCoordinates("Right");
                     break;
+
                 case FigureType.Z:
-                    RotateCoordinates();
-                    break;
                 case FigureType.S:
-                    RotateCoordinates();
-                    break;
                 case FigureType.I:
                     RotateCoordinates();
                     break;
             }
 
-            if (!GetFigureRotate(gameField, gameFieldWidth, gameFieldHeight))
-                Array.Copy(fallingFigureTemp, Coordinates, Coordinates.Length);
+            if (!CanFigureRotate(gameField, gameFieldWidth, gameFieldHeight))
+                Array.Copy(currentFigureTemp, Coordinates, Coordinates.Length);
         }
 
-        private bool GetFigureRotate(int[,] gameField, int gameFieldWidth, int gameFieldHeight)
+        private bool CanFigureRotate(int[,] gameField, int gameFieldWidth, int gameFieldHeight)
         {
             for (int i = 0; i < 4; i++)
                 if (Coordinates[1, i] >= gameFieldWidth || Coordinates[1, i] < 0 ||
