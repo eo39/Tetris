@@ -103,18 +103,19 @@ namespace Tetris
 
         private void MoveCurrentFigure(int offsetX, int offsetY)
         {
-            if (!CanCurrentFigureMove(offsetX, offsetY))
-            {
-                if (offsetX != 0) return;
-
-                foreach (var point in currentFigure.Cells)
-                    gameField[point.X, point.Y] = true;
-
-                currentFigure = nextFigure;
-                nextFigure = Figure.BuildRandomFigure();
-            }
-            else
+            if (CanCurrentFigureMove(offsetX, offsetY))
                 currentFigure.ChangeCoordinates(offsetX, offsetY);
+            else
+            {
+                if (offsetY != 0)
+                {
+                    foreach (var point in currentFigure.Cells)
+                        gameField[point.X, point.Y] = true;
+
+                    currentFigure = nextFigure;
+                    nextFigure = Figure.BuildRandomFigure();
+                }
+            }
         }
 
         private bool CanCurrentFigureMove(int offsetX, int offsetY)
