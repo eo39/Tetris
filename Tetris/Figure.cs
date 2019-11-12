@@ -80,6 +80,8 @@ namespace Tetris
                     Cells = GetRotatedCoordinates();
                     rotateMode = rotateMode == 1 ? -1 : 1;
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
             if (!CanFigureRotate(Cells, gameField, gameFieldWidth, gameFieldHeight))
@@ -89,9 +91,9 @@ namespace Tetris
         private static bool CanFigureRotate(IEnumerable<Point> cells, bool[,] gameField, int gameFieldWidth, int gameFieldHeight)
         {
             return cells.All(point => point.X < gameFieldWidth &&
-                                      point.X >= 0 &&
-                                      point.Y < gameFieldHeight &&
-                                      point.Y >= 0 &&
+                                      point.X >= 0 && 
+                                      point.Y < gameFieldHeight && 
+                                      point.Y >= 0 && 
                                       !gameField[point.X, point.Y]);
         }
 
