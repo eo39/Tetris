@@ -2,7 +2,7 @@
 {
     internal enum RotateDirection
     {
-        Right = 1,
-        Left = -1
+        ClockWise = 1,
+        CounterClockWise = -1
     }
 }

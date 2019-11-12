@@ -16,7 +16,7 @@ namespace Tetris
         {
             this.figureType = figureType;
             Cells = cells;
-            rotateDirection = RotateDirection.Right;
+            rotateDirection = RotateDirection.ClockWise;
         }
 
         public static Figure BuildRandomFigure()
@@ -56,21 +56,17 @@ namespace Tetris
         {
             Point[] rotatedCells = GetRotatedCoordinates(Cells);
 
-            if (!IsAcceptableFigurePosition(rotatedCells, gameField, gameFieldWidth, gameFieldHeight)) return;
+            if (!IsAcceptableFigurePosition(rotatedCells, gameField, gameFieldWidth, gameFieldHeight)) 
+                return;
+
+            Cells = rotatedCells;
 
             switch (figureType)
             {
-                case FigureType.T:
-                case FigureType.J:
-                case FigureType.L:
-                    Cells = Cells = rotatedCells;
-                    break;
-
                 case FigureType.Z:
                 case FigureType.S:
                 case FigureType.I:
-                    Cells = Cells = rotatedCells;
-                    rotateDirection = rotateDirection == RotateDirection.Right ? RotateDirection.Left : RotateDirection.Right;
+                    rotateDirection = rotateDirection == RotateDirection.ClockWise ? RotateDirection.CounterClockWise : RotateDirection.ClockWise;
                     break;
             }
         }
@@ -86,9 +82,10 @@ namespace Tetris
 
         private Point[] GetRotatedCoordinates(Point[] cells)
         {
-            return cells.Select(point => new Point(cells[1].X + (cells[1].Y - point.Y) * (int)rotateDirection,
-                cells[1].Y + (point.X - cells[1].X) * (int)rotateDirection)).ToArray();
-
+            return cells
+                   .Select(point => new Point(cells[1].X + (cells[1].Y - point.Y) * (int)rotateDirection,
+                                              cells[1].Y + (point.X - cells[1].X) * (int)rotateDirection))
+                   .ToArray();
         }
     }
 }
