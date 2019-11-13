@@ -6,11 +6,12 @@ namespace Tetris
 {
     internal class Figure
     {
-        public Point[] Cells { get; private set; }
-
         private static readonly Random Random = new Random();
+
         private readonly FigureType figureType;
         private RotateDirection rotateDirection;
+
+        public Point[] Cells { get; private set; }
 
         private Figure(FigureType figureType, params Point[] cells)
         {
@@ -52,39 +53,38 @@ namespace Tetris
             }
         }
 
-        public void RotateFigure(bool[,] gameField, int gameFieldWidth, int gameFieldHeight)
+        public void RotateFigure()
         {
-            Point[] rotatedCells = GetRotatedCoordinates(Cells);
-
-            if (!IsAcceptableFigurePosition(rotatedCells, gameField, gameFieldWidth, gameFieldHeight)) 
-                return;
-
-            Cells = rotatedCells;
-
             switch (figureType)
             {
+                case FigureType.T:
+                case FigureType.J:
+                case FigureType.L:
+                    Cells = GetRotatedCoordinates();
+                    break;
                 case FigureType.Z:
                 case FigureType.S:
                 case FigureType.I:
-                    rotateDirection = rotateDirection == RotateDirection.ClockWise ? RotateDirection.CounterClockWise : RotateDirection.ClockWise;
+                    Cells = GetRotatedCoordinates();
+                    rotateDirection = rotateDirection == RotateDirection.ClockWise 
+                        ? RotateDirection.CounterClockWise 
+                        : RotateDirection.ClockWise;
                     break;
             }
         }
 
-        private bool IsAcceptableFigurePosition(Point[] cells, bool[,] gameField, int gameFieldWidth, int gameFieldHeight)
+        public Point[] GetOffsetCoordinates(int offsetX, int offsetY)
         {
-            return cells.All(point => point.X < gameFieldWidth &&
-                                      point.X >= 0 && 
-                                      point.Y < gameFieldHeight && 
-                                      point.Y >= 0 && 
-                                      !gameField[point.X, point.Y]);
+            return Cells
+                .Select(point => new Point(point.X + offsetX, point.Y + offsetY))
+                .ToArray();
         }
 
-        private Point[] GetRotatedCoordinates(Point[] cells)
+        public Point[] GetRotatedCoordinates()
         {
-            return cells
-                   .Select(point => new Point(cells[1].X + (cells[1].Y - point.Y) * (int)rotateDirection,
-                                              cells[1].Y + (point.X - cells[1].X) * (int)rotateDirection))
+            return Cells
+                   .Select(point => new Point(Cells[1].X + (Cells[1].Y - point.Y) * (int)rotateDirection,
+                                              Cells[1].Y + (point.X - Cells[1].X) * (int)rotateDirection))
                    .ToArray();
         }
     }

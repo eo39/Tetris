@@ -90,11 +90,16 @@ namespace Tetris
                     break;
                 case Keys.W:
                 case Keys.Up:
-                    currentFigure.RotateFigure(gameField, FieldWidth, FieldHeight);
+                    bool canCurrentFigureRotate = IsAcceptableCellsMove(currentFigure.GetRotatedCoordinates());
+
+                    if (canCurrentFigureRotate)
+                        currentFigure.RotateFigure();
                     break;
                 case Keys.Space:
-                    while (CanCurrentFigureMove(0, 1))
+                    while (IsAcceptableCellsMove(currentFigure.GetOffsetCoordinates(0, 1)))
+                    {
                         MoveCurrentFigure(0, 1);
+                    }
 
                     Update();
                     break;
@@ -103,7 +108,7 @@ namespace Tetris
 
         private void MoveCurrentFigure(int offsetX, int offsetY)
         {
-            if (CanCurrentFigureMove(offsetX, offsetY))
+            if (IsAcceptableCellsMove(currentFigure.GetOffsetCoordinates(offsetX, offsetY)))
                 currentFigure.ChangeCoordinates(offsetX, offsetY);
             else
             {
@@ -116,6 +121,14 @@ namespace Tetris
                     nextFigure = Figure.BuildRandomFigure();
                 }
             }
+        }
+        private bool IsAcceptableCellsMove(Point[] cells)
+        {
+            return cells.All(point => point.X < FieldWidth &&
+                                      point.X >= 0 && 
+                                      point.Y < FieldHeight && 
+                                      point.Y >= 0 && 
+                                      !gameField[point.X, point.Y]);
         }
 
         private bool CanCurrentFigureMove(int offsetX, int offsetY)
