@@ -58,7 +58,7 @@ namespace Tetris
                 deletedLinesCount++;
 
                 for (int k = i; k > 1; k--)
-                    for (int l = 1; l < FieldWidth - 1; l++)
+                    for (int l = 0; l < FieldWidth; l++)
                     {
                         gameField[l, k] = gameField[l, k - 1];
                     }
