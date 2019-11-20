@@ -131,15 +131,6 @@ namespace Tetris
                                       !gameField[point.X, point.Y]);
         }
 
-        private bool CanCurrentFigureMove(int offsetX, int offsetY)
-        {
-            return currentFigure.Cells.All(point => point.X + offsetX < FieldWidth &&
-                                                    point.X + offsetX >= 0 &&
-                                                    point.Y + offsetY < FieldHeight &&
-                                                    point.Y + offsetY >= 0 &&
-                                                    !gameField[point.X + offsetX, point.Y + offsetY]);
-        }
-
         public void Draw(Graphics graphics)
         {
             DrawField(graphics);
